@@ -14,15 +14,39 @@ const BELT_RANKS = ['white', 'blue', 'purple', 'brown', 'black'];
 
 export function BeltPromotionForm({ member, onSubmit, onCancel }: BeltPromotionFormProps) {
   const currentBeltIndex = BELT_RANKS.indexOf(member.belt || 'white');
-  const availableBelts = BELT_RANKS.slice(currentBeltIndex + 1);
+  
+  // Include current belt and higher belts in the available options
+  const availableBelts = BELT_RANKS.slice(currentBeltIndex);
 
   const { values, handleChange, handleSubmit, loading, errors } = useForm({
     initialValues: {
-      belt: availableBelts[0] || member.belt,
-      stripes: 0,
+      belt: member.belt || 'white',
+      stripes: member.stripes || 0,
     },
     onSubmit,
   });
+
+  // Update stripes when belt changes
+  const handleBeltChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newBelt = e.target.value;
+    // If selecting the current belt, keep current stripes
+    // Otherwise, reset stripes to 0 for a new belt
+    const newStripes = newBelt === member.belt ? member.stripes || 0 : 0;
+    
+    handleChange({
+      target: {
+        name: 'belt',
+        value: newBelt
+      }
+    } as React.ChangeEvent<HTMLInputElement>);
+    
+    handleChange({
+      target: {
+        name: 'stripes',
+        value: newStripes
+      }
+    } as React.ChangeEvent<HTMLInputElement>);
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -53,15 +77,21 @@ export function BeltPromotionForm({ member, onSubmit, onCancel }: BeltPromotionF
           id="belt"
           name="belt"
           value={values.belt}
-          onChange={handleChange}
+          onChange={handleBeltChange}
           className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg"
         >
           {availableBelts.map((belt) => (
             <option key={belt} value={belt}>
               {belt.charAt(0).toUpperCase() + belt.slice(1)} Belt
+              {belt === member.belt ? ' (Current)' : ''}
             </option>
           ))}
         </select>
+        <p className="mt-1 text-xs text-gray-500">
+          {values.belt === member.belt 
+            ? "Keeping the same belt will update stripes only" 
+            : "Promoting to a new belt will reset stripes to 0"}
+        </p>
       </div>
 
       <div>

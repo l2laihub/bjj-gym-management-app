@@ -5,10 +5,12 @@ import PageHeader from '../components/layout/PageHeader';
 import { MemberStats } from '../components/members/MemberStats';
 import { MemberFilters } from '../components/members/MemberFilters';
 import { MemberList } from '../components/members/MemberList';
+import { CreateMemberModal } from '../components/members/CreateMemberModal';
 import type { MemberFilters as MemberFiltersType } from '../types/member';
 
 const Members = () => {
   const [filters, setFilters] = useState<MemberFiltersType>({});
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   return (
     <PageContainer>
@@ -20,7 +22,10 @@ const Members = () => {
           <Download className="w-5 h-5 mr-2" />
           Export List
         </button>
-        <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center">
+        <button 
+          onClick={() => setShowCreateModal(true)}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center"
+        >
           <Plus className="w-5 h-5 mr-2" />
           Add Member
         </button>
@@ -34,6 +39,15 @@ const Members = () => {
         />
         <MemberList filters={filters} />
       </div>
+
+      <CreateMemberModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={() => {
+          // Refresh member list
+          window.location.reload();
+        }}
+      />
     </PageContainer>
   );
 };

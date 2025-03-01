@@ -7,7 +7,7 @@ export interface BeltUpdateData {
   notes?: string;
 }
 
-export async function updateMemberBelt(memberId: string, data: BeltUpdateData) {
+export async function updateBelt(memberId: string, data: BeltUpdateData) {
   try {
     const { error } = await supabase.rpc('update_member_belt', {
       p_id: memberId,

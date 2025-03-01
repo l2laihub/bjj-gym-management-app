@@ -1,30 +1,72 @@
 import React, { useState } from 'react';
-import { MoreVertical, Edit, UserMinus, Award, Eye, Trash2 } from 'lucide-react';
+import { MoreVertical, Edit, Award, Eye, Trash2, AlertTriangle } from 'lucide-react';
 import { Modal } from '../ui/Modal';
-import { CreateMemberForm } from './forms/CreateMemberForm';
 import { MemberEditForm } from './forms/MemberEditForm';
 import { BeltPromotionForm } from './forms/BeltPromotionForm';
+import { updateMember, updateMemberBelt, deleteMember } from '../../lib/members';
+import { useToast } from '../../contexts/ToastContext';
 import type { Member } from '../../types/member';
 
 interface MemberActionsProps {
   member: Member;
   onView: (member: Member) => void;
-  onEdit: (data: Partial<Member>) => Promise<void>;
-  onPromote: (data: { belt: string; stripes: number }) => Promise<void>;
-  onDelete: () => Promise<void>;
+  onUpdate: () => void;
 }
 
-export function MemberActions({
-  member,
-  onView,
-  onEdit,
-  onPromote,
-  onDelete
-}: MemberActionsProps) {
+export function MemberActions({ member, onView, onUpdate }: MemberActionsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
+
+  const handleEdit = async (data: Partial<Member>) => {
+    try {
+      setLoading(true);
+      await updateMember(member.id, data);
+      showToast('success', 'Member updated successfully');
+      onUpdate();
+      setShowEditModal(false);
+    } catch (error) {
+      console.error('Failed to update member:', error);
+      showToast('error', 'Failed to update member');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePromote = async (data: { belt: string; stripes: number }) => {
+    try {
+      setLoading(true);
+      await updateMemberBelt(member.id, data);
+      showToast('success', 'Member promoted successfully');
+      onUpdate();
+      setShowPromoteModal(false);
+    } catch (error) {
+      console.error('Failed to promote member:', error);
+      showToast('error', 'Failed to promote member');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      setLoading(true);
+      await deleteMember(member.id);
+      showToast('success', 'Member deleted successfully');
+      onUpdate();
+      setShowDeleteConfirm(false);
+    } catch (error: any) {
+      console.error('Failed to delete member:', error);
+      showToast('error', error.message || 'Failed to delete member');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -77,10 +119,7 @@ export function MemberActions({
       >
         <MemberEditForm
           member={member}
-          onSubmit={async (data) => {
-            await onEdit(data);
-            setShowEditModal(false);
-          }}
+          onSubmit={handleEdit}
           onCancel={() => setShowEditModal(false)}
         />
       </Modal>
@@ -92,10 +131,7 @@ export function MemberActions({
       >
         <BeltPromotionForm
           member={member}
-          onSubmit={async (data) => {
-            await onPromote(data);
-            setShowPromoteModal(false);
-          }}
+          onSubmit={handlePromote}
           onCancel={() => setShowPromoteModal(false)}
         />
       </Modal>
@@ -103,10 +139,19 @@ export function MemberActions({
       <Modal
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        title="Confirm Delete"
+        title="Delete Member"
       >
         <div className="space-y-4">
-          <p>Are you sure you want to delete {member.fullName}?</p>
+          <div className="flex items-start space-x-3 p-4 bg-red-50 rounded-lg">
+            <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5" />
+            <div>
+              <h3 className="font-medium text-red-900">Delete Member Account</h3>
+              <p className="text-sm text-red-700 mt-1">
+                This action will permanently delete {member.fullName}'s account and all associated data. This cannot be undone.
+              </p>
+            </div>
+          </div>
+          
           <div className="flex justify-end space-x-3">
             <button
               onClick={() => setShowDeleteConfirm(false)}
@@ -115,13 +160,12 @@ export function MemberActions({
               Cancel
             </button>
             <button
-              onClick={async () => {
-                await onDelete();
-                setShowDeleteConfirm(false);
-              }}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              onClick={handleDelete}
+              disabled={loading}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center"
             >
-              Delete
+              <Trash2 className="w-4 h-4 mr-2" />
+              {loading ? 'Deleting...' : 'Delete Member'}
             </button>
           </div>
         </div>

@@ -25,10 +25,50 @@ export function useMembers(filters: MemberFilters = {}) {
   // Use refs to track the latest filters and prevent stale closures
   const filtersRef = useRef(filters);
   const timeoutRef = useRef<NodeJS.Timeout>();
+  const retryCountRef = useRef(0);
+  const maxRetries = 3;
 
   useEffect(() => {
     filtersRef.current = filters;
   }, [filters]);
+
+  const fetchMembers = async () => {
+    if (!user) {
+      setMembers([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const data = await getMembers(filtersRef.current);
+      setMembers(data);
+      setError(null);
+      retryCountRef.current = 0;
+      
+      // Update cache
+      membersCache.set(getCacheKey(filtersRef.current), {
+        data,
+        timestamp: Date.now()
+      });
+    } catch (err) {
+      console.error('Failed to load members:', err);
+      
+      // Retry logic for network errors
+      if (retryCountRef.current < maxRetries) {
+        retryCountRef.current++;
+        const delay = Math.pow(2, retryCountRef.current) * 1000;
+        console.log(`Retrying in ${delay}ms... (Attempt ${retryCountRef.current}/${maxRetries})`);
+        
+        timeoutRef.current = setTimeout(fetchMembers, delay);
+        return;
+      }
+
+      setError(err instanceof Error ? err : new Error('Failed to load members'));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) {
@@ -55,29 +95,8 @@ export function useMembers(filters: MemberFilters = {}) {
 
     // Debounce the API call
     timeoutRef.current = setTimeout(async () => {
-      try {
-        setLoading(true);
-        const data = await getMembers(filtersRef.current);
-        
-        if (mounted) {
-          setMembers(data);
-          setError(null);
-          
-          // Update cache
-          membersCache.set(cacheKey, {
-            data,
-            timestamp: Date.now()
-          });
-        }
-      } catch (err) {
-        if (mounted) {
-          console.error('Failed to load members:', err);
-          setError(err instanceof Error ? err : new Error('Failed to load members'));
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+      if (mounted) {
+        await fetchMembers();
       }
     }, DEBOUNCE_DELAY);
 
@@ -89,5 +108,5 @@ export function useMembers(filters: MemberFilters = {}) {
     };
   }, [user, filters]);
 
-  return { members: members || [], loading, error };
+  return { members, loading, error, refetch: fetchMembers };
 }

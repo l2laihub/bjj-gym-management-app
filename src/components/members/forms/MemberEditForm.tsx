@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail, User, Phone } from 'lucide-react';
+import { Mail, User } from 'lucide-react';
 import { useForm } from '../../../hooks/useForm';
 import type { Member } from '../../../types/member';
 

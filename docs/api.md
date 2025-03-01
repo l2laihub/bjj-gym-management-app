@@ -1,5 +1,29 @@
 # API Documentation
 
+## Table of Contents
+- [Overview](#overview)
+- [Authentication](#authentication)
+  - [Sign Up](#sign-up)
+  - [Sign In](#sign-in)
+  - [Sign Out](#sign-out)
+- [Members](#members)
+  - [Get Members](#get-members)
+  - [Get Member Details](#get-member-details)
+  - [Update Member Progress](#update-member-progress)
+- [Techniques](#techniques)
+  - [Get Techniques](#get-techniques)
+  - [Get Techniques by Belt Level](#get-techniques-by-belt-level)
+  - [Add Technique](#add-technique)
+  - [Update Technique](#update-technique)
+- [User Technique Progress](#user-technique-progress)
+  - [Get User's Technique Status](#get-users-technique-status)
+  - [Update Technique Status](#update-technique-status)
+- [Error Handling](#error-handling)
+- [Response Types](#response-types)
+- [Best Practices](#best-practices)
+- [Rate Limits](#rate-limits)
+- [Authentication Requirements](#authentication-requirements)
+
 ## Overview
 
 The BJJ Gym Management Application uses Supabase as its backend service. This document outlines the available API endpoints and operations implemented through the Supabase client.
@@ -163,7 +187,43 @@ const updateTechniqueStatus = async (
 };
 ```
 
+## Rate Limits
+
+- **Authentication Endpoints**: 10 requests per minute
+- **Read Operations**: 60 requests per minute
+- **Write Operations**: 30 requests per minute
+
+Exceeding rate limits will result in a `429 Too Many Requests` response.
+
+## Authentication Requirements
+
+| Endpoint | Authentication Required | Permissions |
+|----------|-------------------------|-------------|
+| Sign Up | No | None |
+| Sign In | No | None |
+| Sign Out | Yes | Authenticated |
+| Get Members | Yes | Authenticated |
+| Get Member Details | Yes | Authenticated |
+| Update Member Progress | Yes | Admin |
+| Get Techniques | Yes | Authenticated |
+| Get Techniques by Belt Level | Yes | Authenticated |
+| Add Technique | Yes | Admin |
+| Update Technique | Yes | Admin |
+| Get User's Technique Status | Yes | Authenticated |
+| Update Technique Status | Yes | Admin |
+
 ## Error Handling
+
+### Error Codes
+
+| Code | Description |
+|------|-------------|
+| 400 | Bad Request - Invalid parameters |
+| 401 | Unauthorized - Authentication required |
+| 403 | Forbidden - Insufficient permissions |
+| 404 | Not Found - Resource not found |
+| 429 | Too Many Requests - Rate limit exceeded |
+| 500 | Internal Server Error - Server-side error |
 
 All API calls should be wrapped in try-catch blocks and handle both Supabase errors and HTTP errors appropriately:
 

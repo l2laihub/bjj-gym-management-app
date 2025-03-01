@@ -20,7 +20,18 @@ export function CreateMemberForm({ onSubmit, onCancel }: CreateMemberFormProps) 
       stripes: 0,
       status: 'active',
     },
-    onSubmit,
+    onSubmit: async (values) => {
+      try {
+        await onSubmit(values);
+      } catch (error: any) {
+        // Handle specific error cases
+        if (error?.code === 'user_already_exists' || error?.message?.includes('already registered')) {
+          throw new Error('A member with this email already exists.');
+        }
+        // Handle other errors
+        throw new Error('Failed to create member. Please try again later.');
+      }
+    },
   });
 
   return (

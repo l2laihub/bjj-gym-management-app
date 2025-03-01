@@ -24,8 +24,17 @@ const SignInForm = () => {
       password: '',
     },
     onSubmit: async (values) => {
-      await signIn(values.email, values.password);
-      navigate('/dashboard');
+      try {
+        await signIn(values.email, values.password);
+        navigate('/dashboard');
+      } catch (error: any) {
+        // Handle specific error cases
+        if (error?.message === 'Invalid login credentials') {
+          throw new Error('Invalid email or password. Please try again.');
+        }
+        // Handle other errors
+        throw new Error('Failed to sign in. Please try again later.');
+      }
     },
   });
 

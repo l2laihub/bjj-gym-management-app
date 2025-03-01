@@ -18,43 +18,35 @@ export function useRoles() {
       }
 
       try {
-        // First check if user has a profile
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', user.id)
-          .single();
-
-        if (profileError && profileError.code !== 'PGRST116') {
-          throw profileError;
-        }
-
-        // Then get user roles
+        // Get user roles
         const { data: userRoles, error: rolesError } = await supabase
           .from('user_roles')
           .select('role_id')
           .eq('user_id', user.id);
 
-        if (rolesError) throw rolesError;
+        if (rolesError) {
+          // Handle specific error cases
+          if (rolesError.code === 'PGRST116') {
+            // No roles found - assign default member role
+            const { error: insertError } = await supabase
+              .from('user_roles')
+              .insert([{ user_id: user.id, role_id: 'member' }]);
 
-        if (!userRoles?.length) {
-          // If no roles found, assign default member role
-          const { error: insertError } = await supabase
-            .from('user_roles')
-            .insert([{ user_id: user.id, role_id: 'member' }]);
-
-          if (insertError) throw insertError;
-          
-          setRoles(['member']);
+            if (insertError) throw insertError;
+            setRoles(['member']);
+          } else {
+            throw rolesError;
+          }
         } else {
-          setRoles(userRoles.map(r => r.role_id as Role));
+          setRoles(userRoles?.map(r => r.role_id as Role) || ['member']);
         }
 
         setError(null);
       } catch (err) {
         console.error('Error loading roles:', err);
+        // Set default role on error to prevent lockout
+        setRoles(['member']);
         setError(err instanceof Error ? err : new Error('Failed to load roles'));
-        setRoles([]);
       } finally {
         setLoading(false);
       }

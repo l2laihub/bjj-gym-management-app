@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMembers } from '../../hooks/useMembers';
 import { MemberActions } from './MemberActions';
 import { MemberDetailsDrawer } from './MemberDetailsDrawer';
@@ -10,8 +11,10 @@ interface MemberListProps {
 }
 
 export function MemberList({ filters }: MemberListProps) {
-  const { members, loading, error } = useMembers(filters);
-  const [selectedMember, setSelectedMember] = React.useState<Member | null>(null);
+  const navigate = useNavigate();
+  const { members, loading, error, refetch } = useMembers(filters);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   if (loading) {
     return (
@@ -94,10 +97,8 @@ export function MemberList({ filters }: MemberListProps) {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <MemberActions
                       member={member}
-                      onView={() => setSelectedMember(member)}
-                      onEdit={async () => {}}
-                      onPromote={async () => {}}
-                      onDelete={async () => {}}
+                      onView={() => navigate(`/members/${member.id}`)}
+                      onUpdate={refetch}
                     />
                   </td>
                 </tr>
@@ -111,6 +112,10 @@ export function MemberList({ filters }: MemberListProps) {
         member={selectedMember}
         isOpen={!!selectedMember}
         onClose={() => setSelectedMember(null)}
+        onEdit={() => {
+          setShowEditModal(true);
+          setSelectedMember(null);
+        }}
       />
     </>
   );
