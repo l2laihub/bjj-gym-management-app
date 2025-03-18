@@ -1,45 +1,65 @@
-import React from 'react';
+import { FC } from 'react';
 import { DollarSign, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
+import { useFinance } from '../../hooks/useFinance';
+import { formatCurrency } from '../../lib/utils/formatters';
 
-const stats = [
-  {
-    id: 1,
-    title: 'Total Revenue',
-    value: '$24,500',
-    change: '+12% from last month',
-    icon: <DollarSign className="w-6 h-6 text-green-600" />,
-    trend: 'up',
-  },
-  {
-    id: 2,
-    title: 'Total Expenses',
-    value: '$8,900',
-    change: '-3% from last month',
-    icon: <TrendingDown className="w-6 h-6 text-red-600" />,
-    trend: 'down',
-  },
-  {
-    id: 3,
-    title: 'Net Profit',
-    value: '$15,600',
-    change: '+18% from last month',
-    icon: <TrendingUp className="w-6 h-6 text-indigo-600" />,
-    trend: 'up',
-  },
-  {
-    id: 4,
-    title: 'Outstanding Payments',
-    value: '$2,300',
-    change: '8 members',
-    icon: <Wallet className="w-6 h-6 text-amber-600" />,
-    trend: 'neutral',
-  },
-];
+const FinancialStats: FC = () => {
+  const { stats, loading } = useFinance();
 
-const FinancialStats = () => {
+  // If stats aren't loaded yet, show loading state
+  if (loading || !stats) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        {[1, 2, 3, 4].map((id) => (
+          <div key={id} className="bg-white rounded-xl p-6 shadow-sm animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+            <div className="h-6 bg-gray-200 rounded w-1/3 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Define the stats cards with real data
+  const statsCards = [
+    {
+      id: 1,
+      title: 'Total Revenue',
+      value: formatCurrency(stats.totalIncome),
+      change: stats.topCategories.length > 0 ? `${stats.topCategories[0].name}: ${formatCurrency(stats.topCategories[0].amount)}` : 'No data',
+      icon: <DollarSign className="w-6 h-6 text-green-600" />,
+      trend: 'up',
+    },
+    {
+      id: 2,
+      title: 'Total Expenses',
+      value: formatCurrency(stats.totalExpenses),
+      change: `${stats.pendingExpenses > 0 ? formatCurrency(stats.pendingExpenses) + ' pending' : 'No pending expenses'}`,
+      icon: <TrendingDown className="w-6 h-6 text-red-600" />,
+      trend: 'down',
+    },
+    {
+      id: 3,
+      title: 'Net Income',
+      value: formatCurrency(stats.netIncome),
+      change: `${stats.netIncome > 0 ? 'Profitable' : 'Loss'}`,
+      icon: <TrendingUp className="w-6 h-6 text-indigo-600" />,
+      trend: stats.netIncome > 0 ? 'up' : 'down',
+    },
+    {
+      id: 4,
+      title: 'Pending Income',
+      value: formatCurrency(stats.pendingIncome),
+      change: `${stats.recentTransactions.filter(t => t.status === 'pending' && t.type === 'income').length} transactions`,
+      icon: <Wallet className="w-6 h-6 text-amber-600" />,
+      trend: 'neutral',
+    },
+  ];
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-      {stats.map((stat) => (
+      {statsCards.map((stat) => (
         <div key={stat.id} className="bg-white rounded-xl p-6 shadow-sm">
           <div className="flex justify-between">
             <div>

@@ -82,6 +82,76 @@ export interface Database {
           updated_at?: string
         }
       }
+      transactions: {
+        Row: {
+          id: string
+          description: string
+          amount: number
+          type: 'income' | 'expense'
+          category: string
+          date: string
+          status: 'pending' | 'completed' | 'cancelled'
+          payment_method?: string
+          reference_number?: string
+          notes?: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          description: string
+          amount: number
+          type: 'income' | 'expense'
+          category: string
+          date: string
+          status?: 'pending' | 'completed' | 'cancelled'
+          payment_method?: string
+          reference_number?: string
+          notes?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          description?: string
+          amount?: number
+          type?: 'income' | 'expense'
+          category?: string
+          date?: string
+          status?: 'pending' | 'completed' | 'cancelled'
+          payment_method?: string
+          reference_number?: string
+          notes?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      transaction_categories: {
+        Row: {
+          id: string
+          name: string
+          type: 'income' | 'expense' | 'both'
+          description?: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          type: 'income' | 'expense' | 'both'
+          description?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          type?: 'income' | 'expense' | 'both'
+          description?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never

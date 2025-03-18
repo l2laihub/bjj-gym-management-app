@@ -1,26 +1,42 @@
-import React from 'react';
+import { FC } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useFinance } from '../../hooks/useFinance';
 
-const data = [
-  { month: 'Jan', revenue: 18500, expenses: 7200 },
-  { month: 'Feb', revenue: 19800, expenses: 7800 },
-  { month: 'Mar', revenue: 21200, expenses: 8100 },
-  { month: 'Apr', revenue: 22100, expenses: 8400 },
-  { month: 'May', revenue: 23400, expenses: 8700 },
-  { month: 'Jun', revenue: 24500, expenses: 8900 },
-];
+const RevenueChart: FC = () => {
+  const { chartData, isLoading } = useFinance();
 
-const RevenueChart = () => {
+  // If chart data isn't loaded yet, show loading state
+  if (isLoading || !chartData) {
+    return (
+      <div className="bg-white p-6 rounded-xl shadow-sm">
+        <h2 className="text-xl font-semibold mb-4">Revenue vs Expenses</h2>
+        <div className="h-[300px] flex items-center justify-center">
+          <div className="animate-pulse w-full">
+            <div className="h-4 bg-gray-200 rounded w-1/4 mb-6 mx-auto"></div>
+            <div className="h-40 bg-gray-200 rounded w-full"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Transform the chart data to the format expected by the AreaChart component
+  const chartFormattedData = chartData.labels.map((label, index) => ({
+    month: label,
+    revenue: chartData.incomeData[index],
+    expenses: chartData.expenseData[index]
+  }));
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm">
       <h2 className="text-xl font-semibold mb-4">Revenue vs Expenses</h2>
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data}>
+          <AreaChart data={chartFormattedData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
-            <Tooltip />
+            <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, undefined]} />
             <Area
               type="monotone"
               dataKey="revenue"
