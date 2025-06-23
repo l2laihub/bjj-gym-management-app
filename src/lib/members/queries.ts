@@ -1,6 +1,20 @@
 import { supabase } from '../supabase';
 import type { Member, MemberFilters, MemberDetails } from '../../types/member';
 
+interface DbMember {
+  id: string;
+  full_name: string;
+  email?: string;
+  belt?: string;
+  stripes?: number;
+  status?: string;
+  created_at: string;
+  updated_at: string;
+  birthday?: string;
+  is_minor?: boolean;
+  parent_name?: string;
+}
+
 export async function getMembers(filters: MemberFilters = {}): Promise<Member[]> {
   try {
     const { data, error } = await supabase.rpc('get_members', {
@@ -14,7 +28,7 @@ export async function getMembers(filters: MemberFilters = {}): Promise<Member[]>
       throw new Error('Failed to fetch members');
     }
 
-    return (data || []).map(member => ({
+    return (data || []).map((member: DbMember) => ({
       id: member.id,
       fullName: member.full_name,
       email: member.email || '',
@@ -23,7 +37,10 @@ export async function getMembers(filters: MemberFilters = {}): Promise<Member[]>
       status: member.status || 'active',
       joinDate: member.created_at,
       lastActive: member.updated_at,
-      roles: member.roles || []
+      roles: [],
+      birthday: member.birthday || undefined,
+      isMinor: member.is_minor || false,
+      parentName: member.parent_name || undefined
     }));
   } catch (error) {
     console.error('Error fetching members:', error);

@@ -1,10 +1,11 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { RequireAuth } from './components/auth/RequireAuth';
-import { Sidebar } from './components/sidebar';
+import { Sidebar } from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
+import MemberDashboard from './pages/MemberDashboard';
+import MemberCheckIn from './pages/MemberCheckIn';
 import Members from './pages/Members';
 import MemberProfile from './pages/MemberProfile';
 import Inventory from './pages/Inventory';
@@ -39,8 +40,19 @@ const App = () => {
                     <div className="flex-1 flex flex-col min-h-screen">
                       <main className="flex-1 w-full">
                         <Routes>
+                          {/* Redirect based on role */}
                           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                          <Route path="/dashboard" element={<Dashboard />} />
+                          
+                          {/* Admin Dashboard */}
+                          <Route path="/dashboard" element={
+                            <RequireAuth requireAdmin>
+                              <Dashboard />
+                            </RequireAuth>
+                          } />
+                          
+                          {/* Member Dashboard */}
+                          <Route path="/member/dashboard" element={<MemberDashboard />} />
+                          <Route path="/member/check-in" element={<MemberCheckIn />} />
                           
                           {/* Admin-only routes */}
                           <Route path="/members" element={

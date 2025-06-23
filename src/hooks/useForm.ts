@@ -7,10 +7,10 @@ interface FormConfig<T> {
 
 export function useForm<T>({ initialValues, onSubmit }: FormConfig<T>) {
   const [values, setValues] = useState<T>(initialValues);
-  const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof T | 'form', string>>>({});
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setValues(prev => ({ ...prev, [name]: value }));
     // Clear error when user starts typing
@@ -26,7 +26,7 @@ export function useForm<T>({ initialValues, onSubmit }: FormConfig<T>) {
       await onSubmit(values);
     } catch (error) {
       if (error instanceof Error) {
-        setErrors({ form: error.message });
+        setErrors(prev => ({ ...prev, form: error.message }));
       }
     } finally {
       setLoading(false);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   User, Mail, Calendar, Award, Activity, 
@@ -139,6 +139,22 @@ export default function MemberProfile() {
                     Member since {new Date(member.joinDate).toLocaleDateString()}
                   </span>
                 </div>
+                {member.birthday && (
+                  <div className="flex items-center">
+                    <Calendar className="w-5 h-5 mr-2 text-gray-400" />
+                    <span className="text-gray-600">
+                      Birthday: {new Date(member.birthday).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+                {member.isMinor && member.parentName && (
+                  <div className="flex items-center">
+                    <User className="w-5 h-5 mr-2 text-gray-400" />
+                    <span className="text-gray-600">
+                      Parent/Guardian: {member.parentName}
+                    </span>
+                  </div>
+                )}
                 <div>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     member.status === 'active' 
@@ -405,7 +421,7 @@ export default function MemberProfile() {
       >
         <BeltPromotionForm
           member={member}
-          onSubmit={async (data) => {
+          onSubmit={async () => {
             await handleUpdateSuccess();
             setShowBeltPromotionModal(false);
           }}

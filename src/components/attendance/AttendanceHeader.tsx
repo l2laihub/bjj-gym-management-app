@@ -1,28 +1,30 @@
-import React from 'react';
 import { Calendar, Users, Clock } from 'lucide-react';
-
-const stats = [
-  {
-    id: 1,
-    title: "Today's Classes",
-    value: '6',
-    icon: <Calendar className="w-6 h-6 text-indigo-600" />,
-  },
-  {
-    id: 2,
-    title: "Today's Attendance",
-    value: '42',
-    icon: <Users className="w-6 h-6 text-green-600" />,
-  },
-  {
-    id: 3,
-    title: 'Average Class Size',
-    value: '15',
-    icon: <Clock className="w-6 h-6 text-blue-600" />,
-  },
-];
+import { useAttendanceStats } from '../../hooks/useAttendance';
 
 const AttendanceHeader = () => {
+  const { stats, loading } = useAttendanceStats();
+
+  const statsItems = [
+    {
+      id: 1,
+      title: "Today's Classes",
+      value: loading ? '...' : stats.todaysClasses.toString(),
+      icon: <Calendar className="w-6 h-6 text-indigo-600" />,
+    },
+    {
+      id: 2,
+      title: "Today's Attendance",
+      value: loading ? '...' : stats.todaysAttendance.toString(),
+      icon: <Users className="w-6 h-6 text-green-600" />,
+    },
+    {
+      id: 3,
+      title: 'Average Class Size',
+      value: loading ? '...' : stats.averageClassSize.toString(),
+      icon: <Clock className="w-6 h-6 text-blue-600" />,
+    },
+  ];
+
   return (
     <div className="mb-6">
       <div className="flex justify-between items-center mb-6">
@@ -41,7 +43,7 @@ const AttendanceHeader = () => {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map((stat) => (
+        {statsItems.map((stat) => (
           <div key={stat.id} className="bg-white rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-center">
               <div>

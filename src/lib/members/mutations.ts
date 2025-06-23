@@ -2,8 +2,8 @@ import { supabase } from '../supabase';
 import type { Member, EmergencyContact, MedicalInfo } from '../../types/member';
 import { updateBelt } from './belt';
 
-export interface CreateMemberData extends Omit<Member, 'id' | 'roles'> {}
-export interface UpdateMemberData extends Partial<Member> {}
+export type CreateMemberData = Omit<Member, 'id' | 'roles'>
+export type UpdateMemberData = Partial<Member>
 
 export async function createMember(data: CreateMemberData) {
   try {
@@ -72,7 +72,11 @@ export async function updateMember(id: string, data: UpdateMemberData) {
       .from('profiles')
       .update({
         full_name: data.fullName,
+        email: data.email,
         status: data.status,
+        birthday: data.birthday || null,
+        is_minor: data.isMinor || false,
+        parent_name: data.parentName || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id);

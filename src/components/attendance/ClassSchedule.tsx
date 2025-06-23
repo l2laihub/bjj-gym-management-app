@@ -1,38 +1,6 @@
-import React from 'react';
+import { useState } from 'react';
 import { Clock, Users } from 'lucide-react';
-
-const scheduleData = {
-  'Monday': [
-    { id: 1, name: 'Saplings Gi Class', time: '4:30 PM - 5:10 PM', ageGroup: '3-5 yrs', type: 'gi' },
-    { id: 2, name: 'Kids Gi Class', time: '5:30 PM - 6:15 PM', ageGroup: 'Kids', type: 'gi' },
-    { id: 3, name: 'Adults Gi Class', time: '6:30 PM - 7:30 PM', ageGroup: 'Adults', type: 'gi' },
-    { id: 4, name: 'Open Mat', time: '7:30 PM - 8:00 PM', ageGroup: 'Adults', type: 'open' },
-  ],
-  'Tuesday': [
-    { id: 5, name: 'Kids Gi Class', time: '5:30 PM - 6:15 PM', ageGroup: 'Kids', type: 'gi' },
-    { id: 6, name: 'Adults Gi Class', time: '6:30 PM - 7:30 PM', ageGroup: 'Adults', type: 'gi' },
-    { id: 7, name: 'Open Mat', time: '7:30 PM - 8:00 PM', ageGroup: 'Adults', type: 'open' },
-  ],
-  'Wednesday': [
-    { id: 8, name: 'Kids No Gi & Wrestling', time: '5:30 PM - 6:15 PM', ageGroup: 'Kids', type: 'nogi' },
-    { id: 9, name: 'Adults No Gi', time: '6:30 PM - 7:30 PM', ageGroup: 'Adults', type: 'nogi' },
-    { id: 10, name: 'Open Mat', time: '7:30 PM - 8:00 PM', ageGroup: 'Adults', type: 'open' },
-  ],
-  'Thursday': [
-    { id: 11, name: 'Kids Gi Class', time: '5:30 PM - 6:15 PM', ageGroup: 'Kids', type: 'gi' },
-    { id: 12, name: 'Adults Gi Class', time: '6:30 PM - 7:30 PM', ageGroup: 'Adults', type: 'gi' },
-    { id: 13, name: 'Open Mat', time: '7:30 PM - 8:00 PM', ageGroup: 'Adults', type: 'open' },
-  ],
-  'Friday': [
-    { id: 14, name: 'Saplings Gi Class', time: '4:30 PM - 5:10 PM', ageGroup: '3-5 yrs', type: 'gi' },
-    { id: 15, name: 'Kids Gi Class', time: '5:30 PM - 6:15 PM', ageGroup: 'Kids', type: 'gi' },
-    { id: 16, name: 'Adults Gi Class', time: '6:30 PM - 7:30 PM', ageGroup: 'Adults', type: 'gi' },
-    { id: 17, name: 'Open Mat', time: '7:30 PM - 8:00 PM', ageGroup: 'Adults', type: 'open' },
-  ],
-  'Saturday': [
-    { id: 18, name: 'Open Mat', time: '10:30 AM - 12:00 PM', ageGroup: 'Adults', type: 'open' },
-  ],
-};
+import { useClassSchedule } from '../../hooks/useAttendance';
 
 const getClassTypeStyles = (type: string) => {
   const styles = {
@@ -45,7 +13,8 @@ const getClassTypeStyles = (type: string) => {
 
 const ClassSchedule = () => {
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
-  const todaySchedule = scheduleData[today as keyof typeof scheduleData] || [];
+  const [selectedDay, setSelectedDay] = useState(today);
+  const { schedule, loading } = useClassSchedule(selectedDay);
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
@@ -53,38 +22,61 @@ const ClassSchedule = () => {
         <h2 className="text-xl font-semibold">Today's Schedule</h2>
         <div className="flex items-center text-sm text-gray-500">
           <Clock className="w-4 h-4 mr-1" />
-          {today}
+          <select 
+            value={selectedDay} 
+            onChange={(e) => setSelectedDay(e.target.value)}
+            className="border-none bg-transparent focus:ring-0 text-gray-500 cursor-pointer"
+            aria-label="Select day of week"
+          >
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+            <option value="Saturday">Saturday</option>
+            <option value="Sunday">Sunday</option>
+          </select>
         </div>
       </div>
       
-      <div className="space-y-4">
-        {todaySchedule.map((cls) => (
-          <div
-            key={cls.id}
-            className="border rounded-lg p-4 hover:border-indigo-500 transition-colors"
-          >
-            <div className="flex justify-between items-start mb-2">
-              <div>
-                <h3 className="font-semibold text-lg">{cls.name}</h3>
-                <p className="text-gray-500">{cls.time}</p>
+      {loading ? (
+        <div className="py-8 text-center text-gray-500">
+          Loading schedule...
+        </div>
+      ) : schedule.length === 0 ? (
+        <div className="py-8 text-center text-gray-500">
+          No classes scheduled for {selectedDay}.
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {schedule.map((cls) => (
+            <div
+              key={cls.id}
+              className="border rounded-lg p-4 hover:border-indigo-500 transition-colors"
+            >
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <h3 className="font-semibold text-lg">{cls.className}</h3>
+                  <p className="text-gray-500">{cls.startTime.substring(0, 5)} - {cls.endTime.substring(0, 5)}</p>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getClassTypeStyles(cls.classType)}`}>
+                  {cls.ageGroup}
+                </span>
               </div>
-              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getClassTypeStyles(cls.type)}`}>
-                {cls.ageGroup}
-              </span>
-            </div>
-            
-            <div className="flex justify-between items-center mt-3">
-              <div className="flex items-center text-sm text-gray-500">
-                <Users className="w-4 h-4 mr-1" />
-                <span>Capacity: 20</span>
+              
+              <div className="flex justify-between items-center mt-3">
+                <div className="flex items-center text-sm text-gray-500">
+                  <Users className="w-4 h-4 mr-1" />
+                  <span>Capacity: {cls.capacity}</span>
+                </div>
+                <button className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                  Take Attendance
+                </button>
               </div>
-              <button className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
-                Take Attendance
-              </button>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       <div className="mt-6 pt-6 border-t">
         <div className="flex justify-between items-center mb-4">

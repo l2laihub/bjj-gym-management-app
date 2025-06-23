@@ -1,23 +1,30 @@
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { Users, ShoppingBag, Calendar, Award, BarChart3, Settings, Clock, BookOpen, DollarSign, Trophy, UserPlus, Menu, X } from 'lucide-react';
+import { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { Users, ShoppingBag, Calendar, Award, BarChart3, Settings, Clock, BookOpen, DollarSign, Trophy, UserPlus, Menu, X, Home } from 'lucide-react';
 import { cn } from '../utils/cn';
 import SignOutButton from './auth/SignOutButton';
 import { useRoles } from '../hooks/useRoles';
 
-// Define menu items with role requirements
+// Define menu items with role requirements and database integration status
 const menuItems = [
-  { to: "/dashboard", icon: BarChart3, text: "Dashboard", requireAdmin: false },
-  { to: "/prospects", icon: UserPlus, text: "Prospects", requireAdmin: true },
-  { to: "/members", icon: Users, text: "Members", requireAdmin: true },
-  { to: "/inventory", icon: ShoppingBag, text: "Inventory", requireAdmin: true },
-  { to: "/attendance", icon: Calendar, text: "Attendance", requireAdmin: false },
-  { to: "/schedule", icon: Clock, text: "Class Schedule", requireAdmin: false },
-  { to: "/promotions", icon: Award, text: "Promotions", requireAdmin: true },
-  { to: "/curriculum", icon: BookOpen, text: "Curriculum", requireAdmin: false },
-  { to: "/finances", icon: DollarSign, text: "Finances", requireAdmin: true },
-  { to: "/tournament-records", icon: Trophy, text: "Tournament Records", requireAdmin: false },
-  { to: "/settings", icon: Settings, text: "Settings", requireAdmin: true },
+  // Admin-only items
+  { to: "/dashboard", icon: BarChart3, text: "Admin Dashboard", requireAdmin: true, dbIntegrated: true },
+  { to: "/prospects", icon: UserPlus, text: "Prospects", requireAdmin: true, dbIntegrated: true },
+  { to: "/members", icon: Users, text: "Members", requireAdmin: true, dbIntegrated: true },
+  { to: "/inventory", icon: ShoppingBag, text: "Inventory", requireAdmin: true, dbIntegrated: false },
+  { to: "/promotions", icon: Award, text: "Promotions", requireAdmin: true, dbIntegrated: false },
+  { to: "/finances", icon: DollarSign, text: "Finances", requireAdmin: true, dbIntegrated: true },
+  
+  // Member-only items
+  { to: "/member/dashboard", icon: Home, text: "Member Dashboard", requireAdmin: false, memberOnly: true, dbIntegrated: true },
+  { to: "/member/check-in", icon: Clock, text: "Check In", requireAdmin: false, memberOnly: true, dbIntegrated: false },
+  
+  // Shared items (accessible by both admin and members)
+  { to: "/attendance", icon: Calendar, text: "Attendance", requireAdmin: false, dbIntegrated: false },
+  { to: "/schedule", icon: Clock, text: "Class Schedule", requireAdmin: false, dbIntegrated: false },
+  { to: "/curriculum", icon: BookOpen, text: "Curriculum", requireAdmin: false, dbIntegrated: true },
+  { to: "/tournament-records", icon: Trophy, text: "Tournament Records", requireAdmin: false, dbIntegrated: false },
+  { to: "/settings", icon: Settings, text: "Settings", requireAdmin: false, dbIntegrated: true },
 ];
 
 // SidebarLink component
@@ -41,12 +48,31 @@ const SidebarLink = ({ to, icon, text, onClick }: { to: string; icon: React.Reac
 
 export const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { isAdmin } = useRoles();
+  const { isAdmin, isMember } = useRoles();
+  const navigate = useNavigate();
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
-  // Filter menu items based on user role
-  const filteredMenuItems = menuItems.filter(item => !item.requireAdmin || isAdmin);
+  // Redirect regular members to member dashboard if they try to access admin dashboard
+  if (!isAdmin && window.location.pathname === '/dashboard') {
+    navigate('/member/dashboard');
+  }
+
+  // Filter menu items based on user role and database integration status
+  const filteredMenuItems = menuItems.filter(item => {
+    // Only show items that are integrated with the database
+    if (!item.dbIntegrated) return false;
+    
+    // Admin can see all non-member-only items
+    if (isAdmin && !item.memberOnly) return true;
+    
+    // Members can see member-only items and shared items
+    if (isMember) {
+      return !item.requireAdmin;
+    }
+    
+    return false;
+  });
 
   return (
     <>

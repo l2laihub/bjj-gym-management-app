@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { MoreVertical, Edit, Award, Eye, Trash2, AlertTriangle } from 'lucide-react';
 import { Modal } from '../ui/Modal';
-import { MemberEditForm } from './forms/MemberEditForm';
+import { EditMemberForm } from './forms/EditMemberForm';
 import { BeltPromotionForm } from './forms/BeltPromotionForm';
 import { updateMember, updateMemberBelt, deleteMember } from '../../lib/members';
 import { useToast } from '../../contexts/ToastContext';
@@ -60,9 +60,10 @@ export function MemberActions({ member, onView, onUpdate }: MemberActionsProps) 
       showToast('success', 'Member deleted successfully');
       onUpdate();
       setShowDeleteConfirm(false);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to delete member:', error);
-      showToast('error', error.message || 'Failed to delete member');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete member';
+      showToast('error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -74,6 +75,8 @@ export function MemberActions({ member, onView, onUpdate }: MemberActionsProps) 
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="p-2 hover:bg-gray-100 rounded-lg"
+          title="Member actions"
+          aria-label="Open member actions menu"
         >
           <MoreVertical className="w-5 h-5 text-gray-500" />
         </button>
@@ -117,7 +120,7 @@ export function MemberActions({ member, onView, onUpdate }: MemberActionsProps) 
         onClose={() => setShowEditModal(false)}
         title="Edit Member"
       >
-        <MemberEditForm
+        <EditMemberForm
           member={member}
           onSubmit={handleEdit}
           onCancel={() => setShowEditModal(false)}

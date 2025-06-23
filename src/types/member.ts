@@ -8,6 +8,9 @@ export interface Member {
   lastActive?: string;
   status: 'active' | 'inactive';
   roles: string[];
+  birthday?: string;
+  parentName?: string;
+  isMinor?: boolean;
 }
 
 export interface MemberFilters {

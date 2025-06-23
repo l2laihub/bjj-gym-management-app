@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { X, Mail, Calendar, Award, Activity, AlertCircle, Edit, Phone, Plus } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { X, Mail, Calendar, Award, Activity, AlertCircle, Edit, Phone, Plus, User } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { EmergencyContactForm } from './forms/EmergencyContactForm';
 import { MedicalInfoForm } from './forms/MedicalInfoForm';
@@ -22,13 +22,7 @@ export function MemberDetailsDrawer({ member, isOpen, onClose, onEdit }: MemberD
   const [showMedicalInfoModal, setShowMedicalInfoModal] = useState(false);
   const { showToast } = useToast();
 
-  useEffect(() => {
-    if (member && isOpen) {
-      loadMemberDetails();
-    }
-  }, [member, isOpen]);
-
-  const loadMemberDetails = async () => {
+  const loadMemberDetails = useCallback(async () => {
     if (!member) return;
     
     try {
@@ -41,7 +35,15 @@ export function MemberDetailsDrawer({ member, isOpen, onClose, onEdit }: MemberD
     } finally {
       setLoading(false);
     }
-  };
+  }, [member, showToast]);
+
+  useEffect(() => {
+    if (member && isOpen) {
+      loadMemberDetails();
+    }
+  }, [member, isOpen, loadMemberDetails]);
+
+
 
   if (!member) return null;
 
@@ -54,7 +56,12 @@ export function MemberDetailsDrawer({ member, isOpen, onClose, onEdit }: MemberD
           {/* Header */}
           <div className="p-4 border-b flex justify-between items-center">
             <h2 className="text-lg font-semibold">Member Details</h2>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
+            <button 
+              onClick={onClose} 
+              className="p-2 hover:bg-gray-100 rounded-lg"
+              title="Close"
+              aria-label="Close details panel"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -89,6 +96,18 @@ export function MemberDetailsDrawer({ member, isOpen, onClose, onEdit }: MemberD
                       {member.email}
                     </div>
                   </div>
+                  {member.birthday && (
+                    <div className="flex items-center text-sm text-gray-500">
+                      <Calendar className="w-4 h-4 mr-1" />
+                      Birthday: {new Date(member.birthday).toLocaleDateString()}
+                    </div>
+                  )}
+                  {member.isMinor && member.parentName && (
+                    <div className="flex items-center text-sm text-gray-500">
+                      <User className="w-4 h-4 mr-1" />
+                      Parent/Guardian: {member.parentName}
+                    </div>
+                  )}
                   <div className="flex items-center">
                     <div className={`w-4 h-4 ${getBeltColor(member.belt || 'white')} rounded-full mr-2`} />
                     <span className="capitalize">{member.belt || 'White'} Belt</span>
