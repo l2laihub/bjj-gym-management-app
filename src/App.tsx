@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { RequireAuth } from './components/auth/RequireAuth';
 import { Sidebar } from './components/Sidebar';
+import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import MemberDashboard from './pages/MemberDashboard';
 import MemberCheckIn from './pages/MemberCheckIn';
@@ -26,13 +27,14 @@ const App = () => {
       <ToastProvider>
         <BrowserRouter>
           <Routes>
-            {/* Auth routes */}
+            {/* Public routes */}
+            <Route path="/" element={<LandingPage />} />
             <Route path="/signin" element={<SignInForm />} />
             <Route path="/signup" element={<SignUpForm />} />
 
             {/* Protected routes */}
             <Route
-              path="/*"
+              path="/app/*"
               element={
                 <RequireAuth>
                   <div className="flex h-screen bg-gray-50">
@@ -41,7 +43,7 @@ const App = () => {
                       <main className="flex-1 w-full">
                         <Routes>
                           {/* Redirect based on role */}
-                          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                          <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
                           
                           {/* Admin Dashboard */}
                           <Route path="/dashboard" element={
